@@ -140,7 +140,7 @@ jobs:
 
       - name: Open pull request for new cycle
         if: steps.cycle.outputs.created == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: ${{ steps.cycle.outputs.branch }}
           title: "chore(cycle): start ${{ steps.cycle.outputs.date }} — focus: ${{ steps.cycle.outputs.focus }}"
@@ -263,7 +263,7 @@ jobs:
           } > /tmp/pr_body.md
 
       - name: Open pull request for closed cycle
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           branch: ${{ steps.summary.outputs.branch }}
           title: "chore(cycle): close ${{ steps.summary.outputs.date }} — scores + improvements"
