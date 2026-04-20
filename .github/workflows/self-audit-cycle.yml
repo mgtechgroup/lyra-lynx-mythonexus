@@ -1,0 +1,275 @@
+# ---------------------------------------------------------------------------
+# self-audit-cycle.yml
+#
+# Drives the repo's 14-day capability-building cycle on a biweekly cadence.
+# GitHub's cron scheduler does not natively support an "every 14 days" trigger,
+# so we approximate it with fixed days of the month:
+#
+#   - cycle-start runs at 09:00 UTC on the 1st and 15th of each month.
+#   - cycle-end   runs at 09:00 UTC on the 14th and 28th of each month,
+#                 pairing (roughly) with the preceding start date.
+#
+# This yields ~13-14 day windows that drift slightly across month lengths but
+# stay close enough to the intended cadence. The first scheduled run will
+# seed the initial cycle file via scripts/audit-cycle-start.sh; subsequent
+# runs alternate between opening and closing cycles.
+#
+# Both jobs also expose workflow_dispatch so a maintainer can kick off a
+# cycle manually (optionally pinning the focus area for the start job).
+# ---------------------------------------------------------------------------
+
+name: self-audit-cycle
+
+on:
+  schedule:
+    # cycle-start: 09:00 UTC on the 1st and 15th of each month
+    - cron: "0 9 1,15 * *"
+    # cycle-end: 09:00 UTC on the 14th and 28th of each month
+    - cron: "0 9 14,28 * *"
+  workflow_dispatch:
+    inputs:
+      focus:
+        description: "Optional focus area id (e.g. sec, sup, obs). Only used by cycle-start."
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  cycle-start:
+    # Run on the 1st/15th schedule, or when manually dispatched.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.schedule == '0 9 1,15 * *'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install audit CLIs (gitleaks, shellcheck, pip-audit, semgrep)
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+          # gitleaks: install latest release binary
+          GITLEAKS_VERSION="8.21.2"
+          curl -sSL -o /tmp/gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          sudo install -m 0755 /tmp/gitleaks /usr/local/bin/gitleaks
+
+          # pipx-managed python tools
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --user pipx
+          python3 -m pipx ensurepath
+          export PATH="$HOME/.local/bin:$PATH"
+          pipx install pip-audit
+          pipx install semgrep
+
+          # Expose pipx shims to subsequent steps
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Verify tool versions
+        run: |
+          gitleaks version
+          shellcheck --version
+          pip-audit --version
+          semgrep --version
+
+      - name: Snapshot existing cycle files
+        id: pre
+        run: |
+          set -euo pipefail
+          mkdir -p security/audit-cycles
+          ls security/audit-cycles > /tmp/cycles_before.txt || true
+          echo "before=$(wc -l < /tmp/cycles_before.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+      - name: Run audit-cycle-start.sh
+        env:
+          FOCUS: ${{ github.event.inputs.focus }}
+        run: |
+          set -euo pipefail
+          bash scripts/audit-cycle-start.sh
+
+      - name: Detect newly created cycle file
+        id: cycle
+        run: |
+          set -euo pipefail
+          ls security/audit-cycles > /tmp/cycles_after.txt || true
+          NEW_FILE="$(comm -13 <(sort /tmp/cycles_before.txt) <(sort /tmp/cycles_after.txt) | head -n 1 || true)"
+          if [ -z "${NEW_FILE}" ]; then
+            echo "No new cycle file detected; skipping PR."
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          CYCLE_PATH="security/audit-cycles/${NEW_FILE}"
+          # Filename shape: YYYY-MM-DD-<focus>.md
+          CYCLE_DATE="$(echo "${NEW_FILE}" | sed -E 's/^([0-9]{4}-[0-9]{2}-[0-9]{2}).*/\1/')"
+          CYCLE_FOCUS="$(echo "${NEW_FILE}" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}-(.+)\.md$/\1/')"
+          BRANCH_STAMP="$(date -u +%Y%m%d)"
+
+          {
+            echo "created=true"
+            echo "path=${CYCLE_PATH}"
+            echo "date=${CYCLE_DATE}"
+            echo "focus=${CYCLE_FOCUS}"
+            echo "branch=cycle-start/${BRANCH_STAMP}"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## New audit cycle opened"
+            echo ""
+            echo "- Date: \`${CYCLE_DATE}\`"
+            echo "- Focus: \`${CYCLE_FOCUS}\`"
+            echo "- File: \`${CYCLE_PATH}\`"
+            echo ""
+            echo "### Cycle file contents"
+            echo ""
+            echo '```markdown'
+            cat "${CYCLE_PATH}"
+            echo '```'
+          } > /tmp/pr_body.md
+
+      - name: Open pull request for new cycle
+        if: steps.cycle.outputs.created == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: ${{ steps.cycle.outputs.branch }}
+          title: "chore(cycle): start ${{ steps.cycle.outputs.date }} — focus: ${{ steps.cycle.outputs.focus }}"
+          body-path: /tmp/pr_body.md
+          labels: |
+            audit-cycle
+            automated
+          commit-message: "chore(cycle): open cycle file for ${{ steps.cycle.outputs.date }}"
+          delete-branch: true
+
+  cycle-end:
+    # Run on the 14th/28th schedule, or when manually dispatched.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.schedule == '0 9 14,28 * *'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install audit CLIs (gitleaks, shellcheck, pip-audit, semgrep)
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+          GITLEAKS_VERSION="8.21.2"
+          curl -sSL -o /tmp/gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          sudo install -m 0755 /tmp/gitleaks /usr/local/bin/gitleaks
+
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --user pipx
+          python3 -m pipx ensurepath
+          export PATH="$HOME/.local/bin:$PATH"
+          pipx install pip-audit
+          pipx install semgrep
+
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Verify tool versions
+        run: |
+          gitleaks version
+          shellcheck --version
+          pip-audit --version
+          semgrep --version
+
+      - name: Snapshot agents/proposed before close
+        id: pre
+        run: |
+          set -euo pipefail
+          mkdir -p agents/proposed
+          ls agents/proposed > /tmp/proposed_before.txt || true
+
+      - name: Run audit-cycle-end.sh
+        run: |
+          set -euo pipefail
+          bash scripts/audit-cycle-end.sh
+
+      - name: Collect closed-cycle summary
+        id: summary
+        run: |
+          set -euo pipefail
+          # The end script closes the most recent open cycle file in
+          # security/audit-cycles. Pick the newest-modified file there.
+          CYCLE_PATH="$(ls -1t security/audit-cycles/*.md 2>/dev/null | head -n 1 || true)"
+          if [ -z "${CYCLE_PATH}" ]; then
+            echo "No cycle file found; nothing to summarize."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            CYCLE_DATE="$(date -u +%Y-%m-%d)"
+          else
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            CYCLE_DATE="$(basename "${CYCLE_PATH}" | sed -E 's/^([0-9]{4}-[0-9]{2}-[0-9]{2}).*/\1/')"
+          fi
+
+          BRANCH_STAMP="$(date -u +%Y%m%d)"
+          {
+            echo "date=${CYCLE_DATE}"
+            echo "path=${CYCLE_PATH}"
+            echo "branch=cycle-end/${BRANCH_STAMP}"
+          } >> "$GITHUB_OUTPUT"
+
+          # Diff proposed agents to see what got promoted (removed from proposed/).
+          ls agents/proposed > /tmp/proposed_after.txt || true
+          PROMOTED="$(comm -23 <(sort /tmp/proposed_before.txt) <(sort /tmp/proposed_after.txt) || true)"
+
+          {
+            echo "## Audit cycle closed"
+            echo ""
+            echo "- Date: \`${CYCLE_DATE}\`"
+            if [ -n "${CYCLE_PATH}" ]; then
+              echo "- File: \`${CYCLE_PATH}\`"
+            fi
+            echo ""
+            if [ -n "${CYCLE_PATH}" ] && [ -f "${CYCLE_PATH}" ]; then
+              echo "### Closed cycle summary"
+              echo ""
+              echo '```markdown'
+              cat "${CYCLE_PATH}"
+              echo '```'
+              echo ""
+            fi
+            echo "### Promoted agents"
+            echo ""
+            if [ -z "${PROMOTED}" ]; then
+              echo "_No agents were promoted this cycle._"
+            else
+              echo "The following agents were promoted out of \`agents/proposed/\`:"
+              echo ""
+              while IFS= read -r a; do
+                [ -n "${a}" ] && echo "- \`${a}\`"
+              done <<< "${PROMOTED}"
+            fi
+          } > /tmp/pr_body.md
+
+      - name: Open pull request for closed cycle
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: ${{ steps.summary.outputs.branch }}
+          title: "chore(cycle): close ${{ steps.summary.outputs.date }} — scores + improvements"
+          body-path: /tmp/pr_body.md
+          labels: |
+            audit-cycle
+            automated
+          commit-message: "chore(cycle): close cycle ${{ steps.summary.outputs.date }}"
+          delete-branch: true

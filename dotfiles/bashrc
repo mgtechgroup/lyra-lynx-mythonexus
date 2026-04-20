@@ -1,0 +1,124 @@
+# ── Linux-Bash-Commands: active shell setup ──────────────────────────────────
+
+# History settings
+HISTSIZE=10000
+HISTFILESIZE=20000
+HISTCONTROL=ignoredups:erasedups
+shopt -s histappend
+
+# Better ls
+alias ls='ls --color=auto'
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias lt='ls -ltr'
+
+# Navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias ~='cd ~'
+alias -- -='cd -'
+
+# Safety nets
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+alias mkdir='mkdir -pv'
+
+# grep with color
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+
+# File size / disk
+alias df='df -h'
+alias du='du -h'
+alias dus='du -sh *'
+
+# Process
+alias ps='ps aux'
+alias psg='ps aux | grep'
+
+# Network
+alias myip='curl -s ifconfig.me'
+alias ports='netstat -tulanp 2>/dev/null || ss -tulanp'
+
+# Python
+alias py='python'
+alias pip='python -m pip'
+alias venv='python -m venv'
+
+# Git shortcuts
+alias g='git'
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git log --oneline --graph --decorate'
+alias gd='git diff'
+alias gb='git branch'
+alias gco='git checkout'
+
+# Quick reload
+alias bashrc='${EDITOR:-nano} ~/.bashrc && source ~/.bashrc'
+
+# ── fd (better find) ─────────────────────────────────────────────────────────
+# Installed via Chocolatey — available as 'fd' in Git Bash
+# Usage: fd <pattern>  |  fd <pattern> <dir>  |  fd -e txt
+
+# ── fzf (fuzzy finder) ───────────────────────────────────────────────────────
+[ -f /usr/share/doc/fzf/examples/key-bindings.bash ] && \
+    source /usr/share/doc/fzf/examples/key-bindings.bash
+# Ctrl+T = fuzzy file picker, Ctrl+R = fuzzy history, Alt+C = fuzzy cd
+
+# ── zoxide (smarter cd) ──────────────────────────────────────────────────────
+if command -v zoxide &>/dev/null; then
+    eval "$(zoxide init bash)"
+    # z <name>  → jump to frecent dir   |   zi → interactive (fzf)
+fi
+
+# ── Functions ────────────────────────────────────────────────────────────────
+
+# mkcd: make dir and cd into it
+mkcd() { mkdir -p "$1" && cd "$1"; }
+
+# extract: universal archive extractor
+extract() {
+    case "$1" in
+        *.tar.gz|*.tgz)  tar xzf "$1" ;;
+        *.tar.bz2|*.tbz) tar xjf "$1" ;;
+        *.tar.xz)        tar xJf "$1" ;;
+        *.zip)           unzip "$1" ;;
+        *.7z)            7z x "$1" ;;
+        *.gz)            gunzip "$1" ;;
+        *.rar)           unrar x "$1" ;;
+        *)               echo "Don't know how to extract '$1'" ;;
+    esac
+}
+
+# up N: go up N directories
+up() { local p=''; for _ in $(seq 1 "${1:-1}"); do p="../$p"; done; cd "$p" || return; }
+
+# fcd: fuzzy cd using fzf + fd
+fcd() { cd "$(fd --type d | fzf)" || return; }
+
+# search: grep recursively with context
+search() { grep -rn --color=auto "$1" "${2:-.}"; }
+
+# path: pretty-print PATH entries
+path() { echo "$PATH" | tr ':' '\n' | nl; }
+
+# serve: serve current directory over HTTP
+serve() { python -m http.server "${1:-8000}"; }
+
+# big: show top 10 largest items in current dir
+big() { du -ah . | sort -rh | head -10; }
+
+# ── Prompt (user@host:dir (branch)$) ─────────────────────────────────────────
+parse_git_branch() {
+    git branch 2>/dev/null | sed -n 's/\* //p'
+}
+PS1='\[\e[32m\]\u@\h\[\e[0m\]:\[\e[34m\]\w\[\e[33m\]$(b=$(parse_git_branch); [ -n "$b" ] && echo " ($b)")\[\e[0m\]\$ '
+
+# ─────────────────────────────────────────────────────────────────────────────

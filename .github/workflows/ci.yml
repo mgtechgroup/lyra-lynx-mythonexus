@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Run pre-commit on all files
+        run: pre-commit run --all-files --show-diff-on-failure
+
+  validate-agents:
+    name: validate agent frontmatter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Validate agent files
+        run: |
+          python - <<'PY'
+          import pathlib, re, sys
+          required = {"name", "description", "model", "color"}
+          errors = []
+          for p in pathlib.Path("agents").glob("*.md"):
+              text = p.read_text(encoding="utf-8")
+              m = re.match(r"^---\s*\n(.*?)\n---\s*\n", text, re.DOTALL)
+              if not m:
+                  errors.append(f"{p}: missing YAML frontmatter")
+                  continue
+              keys = set(re.findall(r"^(\w+):", m.group(1), re.MULTILINE))
+              missing = required - keys
+              if missing:
+                  errors.append(f"{p}: missing fields {missing}")
+          if errors:
+              print("\n".join(errors))
+              sys.exit(1)
+          print("All agent files valid.")
+          PY

@@ -1,0 +1,8 @@
+{
+  "name": "lyra-lynx-mythonexus",
+  "version": "0.1.0",
+  "description": "Knowledge system, dotfiles, and agents for a security-hardened Claude Code environment",
+  "author": "Lyra-Lynx MythoNexus contributors",
+  "license": "MIT",
+  "repository": "https://github.com/mgtechgroup/lyra-lynx-mythonexus"
+}

@@ -1,0 +1,35 @@
+# Secrets (defense in depth — gitleaks also blocks these)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+
+# Local Claude memory exports (before sanitization)
+scratch/
+.memory-raw/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Node (in case scripts add any)
+node_modules/
+
+# OS
+desktop.ini

@@ -1,0 +1,19 @@
+# gitleaks config: strict defaults + allowlist for docs that legitimately
+# reference token formats (e.g., example strings in security docs)
+title = "Lyra-Lynx MythoNexus gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Global allowlist"
+paths = [
+    '''\.gitleaks\.toml$''',
+    '''security/audit-log\.md$''',
+]
+# Allow obvious placeholders documented in security docs
+regexes = [
+    '''AKIA[A-Z0-9]{16}  # example-only''',
+    '''gho_\*{20,}''',
+    '''ghp_\*{20,}''',
+]

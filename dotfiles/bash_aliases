@@ -1,0 +1,87 @@
+# ── Lyra-Lynx MythoNexus: WSL/Linux bash_aliases ────────────────────────────
+# Sourced automatically by Ubuntu's default .bashrc
+
+# ── fd shim ─────────────────────────────────────────────────────────────────
+# Debian/Ubuntu ships fd as fdfind to avoid a namespace collision
+if command -v fdfind >/dev/null 2>&1 && ! command -v fd >/dev/null 2>&1; then
+    alias fd='fdfind'
+fi
+
+# ── ls ──────────────────────────────────────────────────────────────────────
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias lt='ls -ltr'
+
+# ── Navigation ──────────────────────────────────────────────────────────────
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+# ── Safety nets ─────────────────────────────────────────────────────────────
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+alias mkdir='mkdir -pv'
+
+# ── grep ────────────────────────────────────────────────────────────────────
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+
+# ── Disk / size ─────────────────────────────────────────────────────────────
+alias df='df -h'
+alias du='du -h'
+alias dus='du -sh *'
+
+# ── Network ─────────────────────────────────────────────────────────────────
+alias myip='curl -s ifconfig.me'
+alias ports='ss -tulanp'
+
+# ── Python ──────────────────────────────────────────────────────────────────
+alias py='python3'
+alias pip='python3 -m pip'
+alias venv='python3 -m venv'
+
+# ── Git ─────────────────────────────────────────────────────────────────────
+alias g='git'
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git log --oneline --graph --decorate'
+alias gd='git diff'
+alias gb='git branch'
+alias gco='git checkout'
+
+# ── fzf key-bindings ────────────────────────────────────────────────────────
+[ -f /usr/share/doc/fzf/examples/key-bindings.bash ] && \
+    source /usr/share/doc/fzf/examples/key-bindings.bash
+
+# ── zoxide ──────────────────────────────────────────────────────────────────
+if command -v zoxide >/dev/null 2>&1; then
+    eval "$(zoxide init bash)"
+fi
+
+# ── Functions ───────────────────────────────────────────────────────────────
+mkcd() { mkdir -p "$1" && cd "$1" || return; }
+
+extract() {
+    case "$1" in
+        *.tar.gz|*.tgz)  tar xzf "$1" ;;
+        *.tar.bz2|*.tbz) tar xjf "$1" ;;
+        *.tar.xz)        tar xJf "$1" ;;
+        *.zip)           unzip "$1" ;;
+        *.7z)            7z x "$1" ;;
+        *.gz)            gunzip "$1" ;;
+        *.rar)           unrar x "$1" ;;
+        *)               echo "Don't know how to extract '$1'" ;;
+    esac
+}
+
+up() { local p=''; for _ in $(seq 1 "${1:-1}"); do p="../$p"; done; cd "$p" || return; }
+fcd() { cd "$(fd --type d | fzf)" || return; }
+search() { grep -rn --color=auto "$1" "${2:-.}"; }
+path() { echo "$PATH" | tr ':' '\n' | nl; }
+serve() { python3 -m http.server "${1:-8000}"; }
+big() { du -ah . 2>/dev/null | sort -rh | head -10; }
