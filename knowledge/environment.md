@@ -16,6 +16,14 @@ Last verified: 2026-04-20
   `~/AppData/Local/Packages/PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0/LocalCache/local-packages/Python313/Scripts`
 - Use `python -m pip` over bare `pip` (safer — pip.exe has previously been shadowed by a broken 3.14 install)
 
+## Hardware
+
+| Component | Spec |
+|-----------|------|
+| RAM | 93 GB |
+| GPU | NVIDIA RTX 5060 (8 GB VRAM) |
+| Disk (C:) | 1.9 TB total, ~1.6 TB free (as of 2026-04-21) |
+
 ## Installed tools (relevant subset)
 
 | Tool | Source | Notes |
@@ -27,6 +35,28 @@ Last verified: 2026-04-20
 | `gh` | Preinstalled | GitHub CLI |
 | Chocolatey | System | Primary Windows package manager |
 | winget | System | Secondary package manager |
+| `ollama` v0.21.0 | Chocolatey | Local LLM inference — installed 2026-04-21 |
+| Docker Desktop | Preinstalled | v29.4.0, Docker Compose v5.1.1, context: desktop-linux |
+
+## Local LLM models (Ollama)
+
+| Model | Size | Purpose |
+|-------|------|---------|
+| `qwen2.5-coder:7b` | 4.7 GB | Primary code generation (fits in VRAM) |
+| `nomic-embed-text:latest` | 274 MB | Local embeddings / semantic search |
+
+## Local infra stack (Docker — `lyra-lynx-mythonexus/infra/`)
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| Loki | 3100 | Log aggregation |
+| Grafana | 3000 | Dashboards |
+| Prometheus | 9090 | Metrics |
+| Portainer | 9000/9443 | Container management |
+| ChromaDB | 8000 | Vector store |
+| Ollama (native) | 11434 | LLM inference (not containerised) |
+
+Start stack: `cd ~/lyra-lynx-mythonexus/infra && docker compose up -d`
 
 `scoop` is NOT installed — prefer Chocolatey or winget.
 
