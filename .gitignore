@@ -33,3 +33,15 @@ node_modules/
 
 # OS
 desktop.ini
+
+# Infra secrets and runtime data (bind-mount dirs are generated state)
+infra/.env
+infra/data/chroma/
+infra/data/grafana/
+infra/data/loki/
+infra/data/portainer/
+infra/data/prometheus/
+
+# Session logs (content — structure tracked via .gitkeep)
+logs/*.log
+logs/audit/*.log

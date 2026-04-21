@@ -1,0 +1,114 @@
+services:
+
+  # ── Log aggregation ──────────────────────────────────────────────────────────
+  loki:
+    image: grafana/loki:3.4.2
+    container_name: nmb-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./config/loki:/etc/loki:ro
+      - ./data/loki:/loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    networks: [nexus]
+    user: "0"
+
+  promtail:
+    image: grafana/promtail:3.4.2
+    container_name: nmb-promtail
+    restart: unless-stopped
+    volumes:
+      - ./config/promtail:/etc/promtail:ro
+      - ../logs:/host/logs:ro
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    networks: [nexus]
+    depends_on: [loki]
+
+  # ── Metrics ──────────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v3.3.1
+    container_name: nmb-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus:/etc/prometheus:ro
+      - ./data/prometheus:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=90d
+      - --web.enable-lifecycle
+    networks: [nexus]
+    user: "0"
+
+  # ── Visualization ─────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:11.6.1
+    container_name: nmb-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD required}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks: [nexus]
+    depends_on: [loki, prometheus]
+    user: "0"
+
+  # ── Container management ──────────────────────────────────────────────────────
+  portainer:
+    image: portainer/portainer-ce:2.27.4
+    container_name: nmb-portainer
+    restart: unless-stopped
+    ports:
+      - "9443:9443"
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/portainer:/data
+    networks: [nexus]
+
+  # ── Local LLM inference ───────────────────────────────────────────────────────
+  # Ollama runs natively at host:11434 (Windows app, RTX 5060, qwen2.5-coder:7b).
+  # Containerised Ollama omitted — native is faster and models are already pulled.
+  # To re-enable: uncomment and run `docker compose up -d ollama`
+  #
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: nmb-ollama
+  #   ports: ["11435:11434"]
+  #   volumes: [ollama-models:/root/.ollama]
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices: [{driver: nvidia, count: 1, capabilities: [gpu]}]
+  #   networks: [nexus]
+
+  # ── Vector store (local knowledge cache / semantic search) ───────────────────
+  chromadb:
+    image: chromadb/chroma:1.0.9
+    container_name: nmb-chromadb
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/chroma:/chroma/.chroma
+    environment:
+      ANONYMIZED_TELEMETRY: "False"
+    networks: [nexus]
+
+networks:
+  nexus:
+    name: nexus-map-bot
+    driver: bridge
+
+# volumes:
+#   ollama-models: # uncomment if re-enabling containerised Ollama

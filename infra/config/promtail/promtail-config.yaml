@@ -1,0 +1,34 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: nexus-sessions
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: nexus-map-bot
+          host: windows-dev
+          __path__: /host/logs/*.log
+
+  - job_name: nexus-audit
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: security-audit
+          host: windows-dev
+          __path__: /host/logs/audit/*.log
+
+  - job_name: system-logs
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: system
+          host: windows-dev
+          __path__: /var/log/*.log
