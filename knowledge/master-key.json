@@ -1,0 +1,35 @@
+{
+    "key_id": "LLMX-MASTER-20260427",
+    "type": "post-quantum-virtual-memory-key",
+    "classification": "ROOT/SUPERUSER/SYSTEM-GLOBAL",
+    "issued": "2026-04-27",
+    "authority": "AzielMelek",
+    "scope": "all_models_all_workflows",
+    "immutable": true,
+    "hashes": {
+        "sha256": "25d8305440d2f39e15e39305343472ad10a5e0cb968a2b83a41f2ea429da9950",
+        "sha3_256": "149729d7c5d11b356885f5c5b9a06db59ae7643df15ef37efa4ffdd5973b65d5"
+    },
+    "bindings": {
+        "primary": "~/.ai-memory/master-key.md",
+        "mirror": "~/lyra-lynx-mythonexus/knowledge/master-key.md",
+        "remote": "https://github.com/mgtechgroup/lyra-lynx-mythonexus/blob/main/knowledge/master-key.md"
+    },
+    "initialization_triggers": [
+        "initialize master setup prompt stored on GitHub and local machine",
+        "initialize master",
+        "load master prompt",
+        "root setup",
+        "superuser mode",
+        "load memory key LLMX-MASTER-20260427",
+        "bind master key",
+        "system global memory init"
+    ],
+    "embedded_master_prompt_hash_sha3_256": "72a9ba167123e5ef84509c4c04b6b04c53216356786c7fa36254ebbe7ee076f7",
+    "propagation_rules": {
+        "session_bind": true,
+        "sub_agent_inherit": true,
+        "remote_fetch": true,
+        "verify_hash": true
+    }
+}

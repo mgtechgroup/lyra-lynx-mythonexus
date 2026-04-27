@@ -22,6 +22,7 @@
 ## Durable directives (set by user, applies to all sessions)
 
 - Security audits, hardening, and accuracy are prime focus at all times
-- Maintain persistent memory across sessions via this repo's `knowledge/` + local memory files
+- Maintain persistent memory across sessions via this repo's `knowledge/` + machine-wide `~/.ai-memory/`
 - Keep this repo public and version-controlled on GitHub
 - Run self-audits every 14 days (see `scripts/self-audit.sh` + scheduled workflow)
+- On session start, load `~/.ai-memory/` files before repo-specific knowledge

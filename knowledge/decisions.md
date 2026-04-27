@@ -29,3 +29,11 @@ Durable architectural and workflow decisions. Append-only; supersede with a new 
 **Decision:** Run local + repo self-audits every 14 days. Scheduled via GitHub Actions (`self-audit.yml`) and local cron/Task Scheduler pointer.
 
 **Reason:** Long enough to accumulate meaningful drift, short enough that findings are actionable. User-specified cadence.
+
+## 2026-04-25 — Machine-wide AI memory cache: ~/.ai-memory/
+
+**Decision:** Create a centralized, append-only memory store at `~/.ai-memory/` accessible by all models (Claude, Cursor, VS Code, Continue.dev, Ollama) via `AI_MEMORY_PATH`.
+
+**Alternatives considered:** A) Per-tool memory silos; B) Cloud-based memory service; C) Repo-only knowledge files.
+
+**Reason:** The user switches between Claude Code, VS Code, Continue.dev, and local LLMs. A machine-wide cache prevents context loss when switching tools. The JSONL format is append-only and tool-agnostic. Sync scripts bridge the cache into the repo's `knowledge/` directory while sanitizing secrets.

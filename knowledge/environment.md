@@ -1,12 +1,31 @@
 # Environment
 
-Last verified: 2026-04-20
+Last verified: 2026-04-25
 
 ## Host
 
 - OS: Windows 11 Pro (26200)
 - Shell: Git Bash (Unix syntax, `/c/Users/...` paths)
 - WSL: Ubuntu (default distro, WSL2)
+
+## Machine-Wide AI Memory Cache
+
+- **Path:** `~/.ai-memory/` (set via `AI_MEMORY_PATH` env var)
+- **Synced:** 5,806 entries from Claude project memory as of 2026-04-25
+- **Core files:**
+  - `memory.jsonl` — append-only forever log
+  - `context.json` — active session state
+  - `preferences.json` — portable user preferences
+  - `projects.json` — project registry
+  - `skills.json` — learned patterns and agent triggers
+- **IDE integration:**
+  - VS Code: `~/.vscode/settings.json` references `AI_MEMORY_PATH`
+  - Continue.dev: `~/.continue/config.json` loads memory as context provider
+  - Claude Code: `~/.claude/CLAUDE.md` loads `.ai-memory/` before repo knowledge
+- **Sync scripts:**
+  - `~/.ai-memory/sync.ps1` — pulls Claude memory into `memory.jsonl`
+  - `~/.ai-memory/promote-to-repo.ps1` — promotes high-confidence entries to `knowledge/memory-sync/`
+- **Rules:** append-only, never store secrets, sanitize paths/tokens before writing
 
 ## Python
 

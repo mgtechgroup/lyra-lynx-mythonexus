@@ -43,3 +43,11 @@ Conventional commits: `<type>: <subject>`
 1. `<tool> --version` to confirm install
 2. `which <tool>` (or `type <tool>`) to confirm shim resolves
 3. Minimal invocation to confirm runtime dependencies exist
+
+## Machine-wide memory cache
+
+- **Read on session start:** `~/.ai-memory/preferences.json`, `context.json`, `skills.json`, `memory.jsonl` (last 50)
+- **Write on session end:** append durable learnings to `~/.ai-memory/memory.jsonl`
+- **Sync:** run `~/.ai-memory/sync.ps1` to ingest Claude project memory; run `~/.ai-memory/promote-to-repo.ps1 -Apply` to push high-confidence entries into `knowledge/memory-sync/`
+- **Sanitize:** never store secrets; redact paths, emails, tokens before appending
+- **Env var:** `AI_MEMORY_PATH` points to `~/.ai-memory/`; set via `set-env.ps1`

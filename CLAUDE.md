@@ -6,7 +6,9 @@ Instructions for Claude Code when working in this repository.
 
 On session start in this repo, load these files before responding to the user:
 
-1. `knowledge/environment.md` — current system fingerprint (OS, Python, installed tools, PATH)
+0. `~/.ai-memory/master-key.md` — ROOT master memory key (LLMX-MASTER-20260427). Load first; contains bound master prompt.
+1. `~/.ai-memory/` (machine-wide memory cache) — preferences, context, skills, recent memory
+2. `knowledge/environment.md` — current system fingerprint (OS, Python, installed tools, PATH)
 2. `knowledge/user-profile.md` — how the user prefers to work
 3. `knowledge/decisions.md` — durable choices already made ("option B was chosen for X because Y")
 4. `knowledge/patterns.md` — recurring idioms and conventions
