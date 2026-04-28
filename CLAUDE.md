@@ -1,35 +1,73 @@
 # CLAUDE.md
+> **Key ID: LLMX-MASTER-20260427**
+> This file binds the master memory directive. Load on every session.
+> Cross-platform: Works on Windows/Linux/macOS/WSL/Git Bash/PowerShell/CMD
 
-Instructions for Claude Code when working in this repository.
+## Core Memory Entry Point
 
-## Priority reading order
+Say **"system scan for core ai memory"** to load full context.
 
-On session start in this repo, load these files before responding to the user:
+## Memory Cache Paths (Cross-Platform)
 
-0. `~/.ai-memory/master-key.md` — ROOT master memory key (LLMX-MASTER-20260427). Load first; contains bound master prompt.
-1. `~/.ai-memory/` (machine-wide memory cache) — preferences, context, skills, recent memory
-2. `knowledge/environment.md` — current system fingerprint (OS, Python, installed tools, PATH)
-2. `knowledge/user-profile.md` — how the user prefers to work
-3. `knowledge/decisions.md` — durable choices already made ("option B was chosen for X because Y")
-4. `knowledge/patterns.md` — recurring idioms and conventions
+| Platform | Path |
+|----------|------|
+| Git Bash | `/c/Users/AzielMelek/.ai-memory` |
+| PowerShell | `$env:USERPROFILE\.ai-memory` |
+| CMD | `%USERPROFILE%\.ai-memory` |
+| WSL | `/mnt/c/Users/AzielMelek/.ai-memory` |
+| Unix | `~/.ai-memory` |
 
-If any of the above contradicts what you observe in the live system, **trust what you observe** and update the relevant knowledge file in the same session.
+**Env var check first:** `AI_MEMORY_PATH`, `CLAUDE_MEMORY_PATH`, `MEMORY_CACHE_PATH`
 
-## Working rules in this repo
+## Core Files
 
-- **No secrets ever.** Run `scripts/scan.sh` before any `git commit` that touches new files. CI will reject pushes with gitleaks findings.
-- **Sanitize before committing knowledge.** Use `scripts/sync-memory.sh` to promote local memory into `knowledge/` — never copy raw memory files. The sync script strips usernames, absolute paths, tokens, and emails.
-- **Append, don't rewrite** `security/audit-log.md`. Every entry is timestamped and immutable.
-- **Agents are authoritative for their workflow.** If a task matches an agent's triggering examples (see `agents/*.md`), invoke the agent via the `Task` tool instead of executing the workflow manually.
+| File | Purpose |
+|------|---------|
+| `master-key.md` | ROOT authority, Key ID LLMX-MASTER-20260427 |
+| `system-memory-index.json` | Full system snapshot, path aliases, triggers |
+| `context.json` | Session + model tracking |
+| `todo-master.json` | Master task file |
+| `projects.json` | Project registry (12 repos) |
+| `mgtechgroup-projects.md` | Detailed mgtechgroup project index (92 repos) |
+| `memory.jsonl` | Append-only learning log |
 
-## Agents available in this plugin
+## Directive Summary
 
-- `windows-env-auditor` — audits Windows/Python PATH state, flags broken installs, reports drift
-- `repo-installer` — handles the clone → install workflow for arbitrary GitHub repos (Windows-aware)
-- `security-gatekeeper` — runs gitleaks + semgrep + pip-audit, blocks on Critical/High findings
+1. **Security first** — Never store secrets in memory or code
+2. **Log all model sessions** — Record to `memory.jsonl` on every session
+3. **Maintain constant memory cache** — Update `context.json` with `model_in_use`, `all_models_used[]`
+4. **Use master todo file** — All tasks in `todo-master.json` as single source of truth
+5. **Append-only audit log** — Write to `security/audit-log.md`
 
-## Commit discipline
+## Environment Variables
 
-- Never skip pre-commit hooks (`--no-verify`) unless the user explicitly asks
-- Commit messages follow conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `sec:`
-- Sign commits when the gitconfig has a signing key configured (see `dotfiles/gitconfig`)
+| Var | Aliases |
+|-----|---------|
+| Memory path | `AI_MEMORY_PATH`, `CLAUDE_MEMORY_PATH`, `MEMORY_CACHE_PATH` |
+| Ollama host | `OLLAMA_HOST`, `OLLAMA_URL` |
+| Docker context | `DOCKER_CONTEXT`, `DOCKER_DEFAULT_CONTEXT` |
+
+## Agents
+
+Invoke via `Task` tool when task matches:
+- `windows-env-auditor` → `/env-audit`
+- `repo-installer` → `/install-repo <url>`
+- `security-gatekeeper` → `/audit`
+- `self-audit-orchestrator` → `/cycle-start`
+
+## System Info
+
+- OS: Windows 11 Pro
+- Primary shell: Git Bash / PowerShell
+- Primary model: claude-sonnet-4
+- Backup model: qwen2.5-coder:7b
+- Ollama: localhost:11434
+- Docker: desktop-linux
+
+## Git Conventions
+
+Use conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `sec:`, `refactor:`, `test:`
+
+---
+
+*Generated: 2026-04-27 | Key: LLMX-MASTER-20260427*
