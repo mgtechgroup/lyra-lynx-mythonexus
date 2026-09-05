@@ -1,6 +1,6 @@
 ---
 name: security-gatekeeper
-description: Use this agent before any `git push` from this repo, when the user asks for a security audit / scan / vulnerability check, or proactively before any commit that touches `scripts/`, `agents/`, `dotfiles/`, or any file that could leak secrets. Examples:
+description: Use this agent before any `git push` from this repo, when the user asks for a security audit / scan / vulnerability check, or proactively before any commit that touches `scripts/`, `agents/`, `dotfiles/`, or any file that could leak secrets. This agent is cross-platform (Windows/macOS/Linux). Examples:
 
 <example>
 Context: User is about to push
