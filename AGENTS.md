@@ -4,10 +4,10 @@
 
 ## Active Agents
 
-### windows-env-auditor
+### windows-env-auditor / unix-env-auditor
 - **Trigger:** `/env-audit`
-- **Purpose:** PATH/Python drift, broken installs, environment audits
-- **Invocations:** Use `Task` tool with subagent_type `windows-env-auditor`
+- **Purpose:** PATH/Python drift, broken installs, environment audits (Cross-platform)
+- **Invocations:** Use `Task` tool with subagent_type `windows-env-auditor` or `unix-env-auditor`
 
 ### repo-installer
 - **Trigger:** `/install-repo <url>`
