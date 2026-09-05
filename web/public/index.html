@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lyra-Lynx MythoNexus | Knowledge Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .accent-text { color: #38bdf8; }
+    </style>
+</head>
+<body class="min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-12 text-center">
+            <h1 class="text-5xl font-bold mb-4 accent-text">Lyra-Lynx MythoNexus</h1>
+            <p class="text-slate-400 text-xl">Portable Knowledge System & Agent Orchestration</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="glass p-6 rounded-2xl">
+                <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                    <span class="mr-2">🧠</span> Knowledge Base
+                </h2>
+                <p class="text-slate-300 mb-4">Durable context, environment patterns, and architectural decisions indexed via semantic RAG.</p>
+                <a href="https://github.com/mgtechgroup/lyra-lynx-mythonexus/tree/main/knowledge" class="text-sky-400 hover:underline font-medium">Browse Knowledge &rarr;</a>
+            </div>
+
+            <div class="glass p-6 rounded-2xl">
+                <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                    <span class="mr-2">🤖</span> Agent Plugin
+                </h2>
+                <p class="text-slate-300 mb-4">Custom agents for environment auditing and repo installation, optimized for Claude Code.</p>
+                <a href="https://github.com/mgtechgroup/lyra-lynx-mythonexus/tree/main/agents" class="text-sky-400 hover:underline font-medium">View Agents &rarr;</a>
+            </div>
+
+            <div class="glass p-6 rounded-2xl">
+                <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                    <span class="mr-2">🛠️</span> Infrastructure
+                </h2>
+                <p class="text-slate-300 mb-4">Edge-ready stack featuring ChromaDB, Loki, and Prometheus for full observability.</p>
+                <a href="https://github.com/mgtechgroup/lyra-lynx-mythonexus/tree/main/infra" class="text-sky-400 hover:underline font-medium">Explore Infra &rarr;</a>
+            </div>
+
+            <div class="glass p-6 rounded-2xl">
+                <h2 class="text-2xl font-semibold mb-4 flex items-center">
+                    <span class="mr-2">🐚</span> Dotfiles
+                </h2>
+                <p class="text-slate-300 mb-4">Cross-platform shell configurations and automation scripts for a coherent dev experience.</p>
+                <a href="https://github.com/mgtechgroup/lyra-lynx-mythonexus/tree/main/dotfiles" class="text-sky-400 hover:underline font-medium">See Configs &rarr;</a>
+            </div>
+        </div>
+
+        <footer class="mt-16 text-center text-slate-500 text-sm">
+            &copy; 2026 mgtechgroup | <a href="https://github.com/mgtechgroup/lyra-lynx-mythonexus" class="hover:text-slate-300">GitHub Repository</a>
+        </footer>
+    </div>
+</body>
+</html>
