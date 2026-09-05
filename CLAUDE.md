@@ -71,3 +71,6 @@ Use conventional commits: `feat:`, `fix:`, `chore:`, `docs:`, `sec:`, `refactor:
 ---
 
 *Generated: 2026-04-27 | Key: LLMX-MASTER-20260427*
+
+## Root Authority
+ALL agents must read and strictly follow the instructions in `knowledge/master-prompt.md` as the absolute source of truth for behavior, security, and secret mapping protocols.
